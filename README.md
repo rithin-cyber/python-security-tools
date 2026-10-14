@@ -47,12 +47,27 @@ assessment or prove that a website is vulnerable. A missing header
 must be evaluated in the context of the application and its security
 requirements. Header values are not comprehensively audited.
 
-## Testing Performed
+## Automated Tests
 
-- Valid HTTPS URL
-- Unsupported URL scheme
-- Invalid URL input
-- Python syntax compilation
+Run the automated unit tests from the repository root:
+
+```bash
+python3 -m unittest -v
+```
+
+The test suite contains five tests covering:
+
+- Detection of the CSP `frame-ancestors` directive
+- Case-insensitive directive matching
+- Handling of a missing directive
+- Rejection of unsupported URL schemes
+- Rejection of invalid URL input
+
+Run a Python syntax check with:
+
+```bash
+python3 -m py_compile header_checker.py
+```
 
 ## Responsible Use
 
