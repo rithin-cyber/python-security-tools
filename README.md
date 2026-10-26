@@ -73,3 +73,40 @@ python3 -m py_compile header_checker.py
 
 Test only websites and systems you own or have explicit permission
 to assess. Respect the target's scope and rules of engagement.
+
+
+## IP Address Validator
+
+### Purpose
+A small Python utility that validates IPv4 and IPv6 address input.
+
+### Features
+- Accepts an IP address from the user.
+- Validates IPv4 and IPv6 using Python's built-in `ipaddress` module.
+- Handles invalid input with a clear error message.
+
+### Requirements
+- Python 3
+- No external packages required.
+
+### Usage
+Run from the repository directory:
+
+`python3 ip_validator.py`
+
+### Examples
+
+**Valid IPv4:**
+Input: `192.168.1.10`
+Output: `Valid IP address: 192.168.1.10`
+
+**Valid IPv6:**
+Input: `2001:db8::1`
+Output: `Valid IP address: 2001:db8::1`
+
+**Invalid input:**
+Input: `hello`
+Output: `Invalid IP address.`
+
+### Limitation
+This tool validates IP address syntax only. It does not check whether a host is online, scan ports, or test network reachability.
