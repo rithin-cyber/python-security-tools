@@ -110,3 +110,50 @@ Output: `Invalid IP address.`
 
 ### Limitation
 This tool validates IP address syntax only. It does not check whether a host is online, scan ports, or test network reachability.
+
+## Basic Reconnaissance Tool
+
+### Purpose
+A beginner-friendly tool that resolves a hostname to an IPv4 address
+and attempts one HTTPS request.
+
+### Features
+- Accepts a hostname as input.
+- Resolves the hostname using Python's `socket` module.
+- Displays the resolved IPv4 address.
+- Attempts an HTTPS request and displays the HTTP status code.
+- Handles DNS resolution failures and common HTTPS request errors.
+- Uses a request timeout.
+- Rejects empty input and full URLs.
+- Rejects paths, spaces, query strings, and URL fragments.
+
+### Input Examples
+
+- Valid: `example.com`
+- Invalid: `https://example.com` (full URL)
+- Invalid: `example.com/about` (path)
+- Invalid: `example.com?test=1` (query string)
+- Invalid: `example.com#section` (fragment)
+- Invalid: `example .com` (space)
+
+
+### Requirements
+- Python 3
+- No third-party Python packages required.
+
+### Usage
+Run from the repository directory:
+
+    python3 recon_tool.py
+
+Enter a hostname when prompted, for example:
+
+    example.com
+
+### Limitations
+This tool performs basic hostname resolution and one HTTPS request.
+It does not scan ports, prove that a host is vulnerable, or perform
+a comprehensive security assessment.
+
+### Responsible Use
+Test only systems you own or have explicit permission to assess.
