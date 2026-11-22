@@ -1,6 +1,10 @@
 name: Free India Cybersecurity Job Search
 
 on:
+  push:
+    paths:
+      - ".github/workflows/free-india-cybersecurity-jobs.yml"
+      - "job-search/india_job_hunter.py"
   schedule:
     # Daily at 08:40 IST (03:10 UTC). Public APIs refresh roughly daily.
     - cron: "10 3 * * *"
