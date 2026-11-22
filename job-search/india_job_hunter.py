@@ -109,6 +109,36 @@ def remoteok():
         if row:
             yield row
 
+
+def greenhouse():
+    """Public official Greenhouse boards; no sign-in, no harvesting of contacts."""
+    boards = (
+        ("Dragos", "dragos"),
+        ("Cobalt", "cobaltio"),
+        ("Bugcrowd", "bugcrowd"),
+        ("Clearwater", "clearwater"),
+        ("Tenable", "tenableinc"),
+        ("GuidePoint Security", "guidepointsecurity"),
+        ("ConnectWise", "connectwise"),
+        ("Zscaler", "zscaler"),
+    )
+    exclude = re.compile(r"\b(?:United States|USA|U\.S\.|Canada|Mexico|Costa Rica|UK|United Kingdom|London|Berlin|Germany|France|Poland|Australia|Singapore|Philippines|Brazil|Colombia|Japan|UAE|Dubai)\b", re.I)
+    india = re.compile(r"\b(?:India|Bengaluru|Bangalore|Kochi|Kozhikode|Pune|Mumbai|Delhi|Gurugram|Gurgaon|Hyderabad|Chennai|Noida|Kolkata|Kerala|Ahmedabad|Chandigarh|Jaipur|Thiruvananthapuram|Remote)\b", re.I)
+    for company, board in boards:
+        try:
+            obj = get_json("https://boards-api.greenhouse.io/v1/boards/" + quote(board) + "/jobs?content=true")
+        except Exception as exc:
+            print("Greenhouse " + company + " unavailable: " + str(exc)[:100], file=sys.stderr)
+            continue
+        for job in obj.get("jobs", []):
+            loc = str((job.get("location") or {}).get("name") or "")
+            if exclude.search(loc) or (loc and not india.search(loc)):
+                continue
+            row = build("Greenhouse — " + company, company, job.get("title", ""), loc or "Location not listed", "", job.get("updated_at", ""), job.get("absolute_url", ""), job.get("content", ""))
+            if row:
+                yield row
+        time.sleep(0.3)
+
 def main():
     DATA.mkdir(parents=True, exist_ok=True)
     old_seen_path = DATA / "seen_job_urls.json"
@@ -116,7 +146,7 @@ def main():
     rows: dict[str, dict] = {}
     errors = {}
     sources_ok = 0
-    for name, fn in (("Himalayas", himalayas), ("Remotive", remotive), ("Remote OK", remoteok)):
+    for name, fn in (("Himalayas", himalayas), ("Remotive", remotive), ("Remote OK", remoteok), ("Greenhouse official boards", greenhouse)):
         try:
             for row in fn():
                 rows.setdefault(row["application_url"], row)
