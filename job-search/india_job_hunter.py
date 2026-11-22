@@ -122,8 +122,8 @@ def greenhouse():
         ("ConnectWise", "connectwise"),
         ("Zscaler", "zscaler"),
     )
-    exclude = re.compile(r"\b(?:United States|USA|U\.S\.|Canada|Mexico|Costa Rica|UK|United Kingdom|London|Berlin|Germany|France|Poland|Australia|Singapore|Philippines|Brazil|Colombia|Japan|UAE|Dubai)\b", re.I)
-    india = re.compile(r"\b(?:India|Bengaluru|Bangalore|Kochi|Kozhikode|Pune|Mumbai|Delhi|Gurugram|Gurgaon|Hyderabad|Chennai|Noida|Kolkata|Kerala|Ahmedabad|Chandigarh|Jaipur|Thiruvananthapuram|Remote)\b", re.I)
+    exclude = re.compile(r"\b(?:United States|USA|U\.S\.|US|Canada|Mexico|Costa Rica|UK|United Kingdom|London|Berlin|Germany|France|Poland|Australia|Singapore|Philippines|Brazil|Colombia|Japan|UAE|Dubai)\b", re.I)
+    india = re.compile(r"\b(?:India|Bengaluru|Bangalore|Kochi|Kozhikode|Pune|Mumbai|Delhi|Gurugram|Gurgaon|Hyderabad|Chennai|Noida|Kolkata|Kerala|Ahmedabad|Chandigarh|Jaipur|Thiruvananthapuram|Worldwide|Global)\b", re.I)
     for company, board in boards:
         try:
             obj = get_json("https://boards-api.greenhouse.io/v1/boards/" + quote(board) + "/jobs?content=true")
@@ -132,7 +132,7 @@ def greenhouse():
             continue
         for job in obj.get("jobs", []):
             loc = str((job.get("location") or {}).get("name") or "")
-            if exclude.search(loc) or (loc and not india.search(loc)):
+            if exclude.search(loc + ' ' + str(job.get('title', ''))) or not india.search(loc):
                 continue
             row = build("Greenhouse — " + company, company, job.get("title", ""), loc or "Location not listed", "", job.get("updated_at", ""), job.get("absolute_url", ""), job.get("content", ""))
             if row:
