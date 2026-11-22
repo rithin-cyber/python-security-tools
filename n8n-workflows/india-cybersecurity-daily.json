@@ -1,0 +1,192 @@
+{
+  "name": "India cybersecurity discovery — daily",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "t1",
+      "name": "Manual start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        270
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 8,
+              "triggerAtMinute": 0
+            }
+          ]
+        }
+      },
+      "id": "t2",
+      "name": "Daily search 8 AM IST",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1,
+      "position": [
+        200,
+        450
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "return ['security','penetration tester','application security','VAPT','cybersecurity analyst'].map(term=>({json:{term}}));"
+      },
+      "id": "t3",
+      "name": "Five job searches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        450,
+        290
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://himalayas.app/jobs/api/search?q=' + encodeURIComponent($json.term) + '&country=IN&sort=recent' }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "id": "t4",
+      "name": "Search India-eligible remote jobs",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        700,
+        290
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForAllItems",
+        "language": "javaScript",
+        "jsCode": "const output=[];const seen=new Set();const date=new Date().toISOString().slice(0,10);\nconst allow=/(pentest|penetration test|vapt|application security|appsec|cyber.?security|security analys|security test|vulnerability assess|offensive security|red team|security research)/i;\nconst senior=/\\b(senior|sr\\.?|lead|principal|director|manager|staff|architect|head of|chief|vice president|vp)\\b/i;\nfor(const item of $input.all()){const jobs=Array.isArray(item.json.jobs)?item.json.jobs:[];for(const j of jobs){const title=String(j.title||'');const url=String(j.applicationLink||'');if(!allow.test(title)||senior.test(title)||!/^https:\\/\\//i.test(url)||seen.has(url))continue; const locs=(Array.isArray(j.locationRestrictions)?j.locationRestrictions:[]).map(x=>(x.alpha2||x.name||x).toString().toLowerCase());if(locs.length && !locs.some(x=>x==='in'||x==='india'))continue;seen.add(url);output.push({json:{'Found date':date,'Company':j.companyName||'Unknown','Role':title,'Location / mode':'Remote — India eligible (verify job)','Official source URL':'https://himalayas.app/','Job application URL':url,'Match score':/\\b(junior|entry|intern|trainee|associate)\\b/i.test(title)?9:5}});}}return output;"
+      },
+      "id": "t5",
+      "name": "Normalize and filter junior roles",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        950,
+        290
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "REPLACE_SPREADSHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Automation Intake",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Found date": "={{ $json['Found date'] }}",
+            "Company": "={{ $json['Company'] }}",
+            "Role": "={{ $json['Role'] }}",
+            "Location / mode": "={{ $json['Location / mode'] }}",
+            "Official source URL": "={{ $json['Official source URL'] }}",
+            "Job application URL": "={{ $json['Job application URL'] }}",
+            "Match score": "={{ $json['Match score'] }}"
+          },
+          "matchingColumns": [
+            "Job application URL"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "t6",
+      "name": "Upsert discovery into tracker",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.6,
+      "position": [
+        1200,
+        290
+      ]
+    }
+  ],
+  "connections": {
+    "Manual start": {
+      "main": [
+        [
+          {
+            "node": "Five job searches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Daily search 8 AM IST": {
+      "main": [
+        [
+          {
+            "node": "Five job searches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Five job searches": {
+      "main": [
+        [
+          {
+            "node": "Search India-eligible remote jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search India-eligible remote jobs": {
+      "main": [
+        [
+          {
+            "node": "Normalize and filter junior roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize and filter junior roles": {
+      "main": [
+        [
+          {
+            "node": "Upsert discovery into tracker",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata"
+  },
+  "active": false,
+  "pinData": {}
+}
