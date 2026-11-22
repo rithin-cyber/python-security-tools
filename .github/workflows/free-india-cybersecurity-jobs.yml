@@ -1,0 +1,51 @@
+name: Free India Cybersecurity Job Search
+
+on:
+  schedule:
+    # Daily at 08:40 IST (03:10 UTC). Public APIs refresh roughly daily.
+    - cron: "10 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: india-cybersecurity-discovery
+  cancel-in-progress: false
+
+jobs:
+  find-jobs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Discover jobs without API keys
+        run: python job-search/india_job_hunter.py
+
+      - name: Commit refreshed findings
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add job-search/data/
+          if git diff --cached --quiet; then
+            echo "No job discovery changes."
+          else
+            git commit -m "Refresh India cybersecurity job discovery [skip ci]"
+            git push
+          fi
+
+      - name: Job discovery summary
+        if: always()
+        run: |
+          if test -f job-search/data/run_summary.json; then
+            cat job-search/data/run_summary.json
+          else
+            echo "No current summary file generated."
+          fi
